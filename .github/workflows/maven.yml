@@ -38,7 +38,7 @@ jobs:
     - name: Publish to GitHub Packages Apache Maven
       run: mvn -e -X deploy
       env:
-        GITHUB_TOKEN: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # GITHUB_TOKEN is the default env for the password
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     - name: Update dependency graph
