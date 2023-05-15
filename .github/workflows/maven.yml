@@ -31,7 +31,9 @@ jobs:
       run: mvn -B package --file pom.xml
 
     - name: debug
-      run: echo $GITHUB_ACTOR
+      run: |
+        echo $GITHUB_ACTOR
+        cat /home/runner/.m2/settings.xml
 
     - name: Publish to GitHub Packages Apache Maven
       run: mvn -e -X deploy
