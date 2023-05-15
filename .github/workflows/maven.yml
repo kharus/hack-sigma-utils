@@ -16,7 +16,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -30,9 +29,10 @@ jobs:
       run: mvn -B package --file pom.xml
 
     - name: Publish to GitHub Packages Apache Maven
-      run: mvn --batch-mode deploy
+      if: github.event_name == 'push'
+      run: mvn -B deploy
       env:
-        GITHUB_TOKEN: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
+        GITHUB_TOKEN: ${{ github.token }}
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     - name: Update dependency graph
