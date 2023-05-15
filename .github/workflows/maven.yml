@@ -36,7 +36,7 @@ jobs:
         cat /home/runner/.m2/settings.xml
 
     - name: Publish to GitHub Packages Apache Maven
-      run: mvn -e -X deploy
+      run: mvn -e -X -Dmaven.wagon.http.pool=false deploy
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # GITHUB_TOKEN is the default env for the password
 
