@@ -25,7 +25,7 @@ public class FileUtil {
      */
     public static List<String> readLines(String filename) {
 
-        return readLines(filename,false);
+        return readLines(filename, false);
     }
 
     /****************************************************************
@@ -48,8 +48,7 @@ public class FileUtil {
                     continue;
                 documents.add(line);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             System.out.println("FileUtil.readLines(): " +
                     "Unable to read line in file. Last line successfully read was: " + line);
@@ -64,8 +63,7 @@ public class FileUtil {
         try {
             File f = new File(filename);
             f.delete();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             System.out.println("FileUtil.delete(): Unable to delete: " + filename);
         }
@@ -85,8 +83,7 @@ public class FileUtil {
                 pw.println(line);
                 //System.out.println("FileUtil.writeLines(): line: " + line);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             System.out.println("FileUtil.writeLines(): Unable to write line in file " + filename);
         }
@@ -110,7 +107,7 @@ public class FileUtil {
         try {
             pwNew = new PrintWriter(new FileWriter(fnameNew, false));
             pwMinus = new PrintWriter(new FileWriter(fnameMinus, false));
-            ArrayList<String> lines = (ArrayList) readLines(filename, false);
+            List<String> lines = readLines(filename, false);
             System.out.println("splitSttaements(): read file " + filename + " with " + lines.size() + " lines");
             for (int i = 0; i < lines.size(); i++) {
                 String s = lines.get(i);
@@ -134,23 +131,19 @@ public class FileUtil {
                             pwNew.println(s);
                         }
                     } while (parenLevel > 0);
-                }
-                else
+                } else
                     pwMinus.println(s);
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             System.out.println("Error with " + filename + ": " + ex.getMessage());
             ex.printStackTrace();
-        }
-        finally {
+        } finally {
             try {
                 if (pwNew != null)
                     pwNew.close();
                 if (pwMinus != null)
                     pwMinus.close();
-            }
-            catch (Exception ioe) {
+            } catch (Exception ioe) {
                 ioe.printStackTrace();
                 System.out.println(ioe.getMessage());
             }
@@ -163,9 +156,9 @@ public class FileUtil {
      */
     public static String noPath(String s) {
 
-        if (!s.contains(File.separator) || s.indexOf(File.separator) == s.length()-1)
+        if (!s.contains(File.separator) || s.indexOf(File.separator) == s.length() - 1)
             return s;
-        return s.substring(s.lastIndexOf(File.separator)+1);
+        return s.substring(s.lastIndexOf(File.separator) + 1);
     }
 
     /****************************************************************
@@ -175,7 +168,7 @@ public class FileUtil {
 
         if (s == null || !s.contains("."))
             return s;
-        return s.substring(0,s.lastIndexOf("."));
+        return s.substring(0, s.lastIndexOf("."));
     }
 
     /****************************************************************
@@ -185,7 +178,7 @@ public class FileUtil {
 
         File root = new File(path);
         File[] list = root.listFiles();
-        ArrayList<String> result = new ArrayList<>();
+        List<String> result = new ArrayList<>();
         if (list == null) return result;
         for (File f : list) {
             if (f.isDirectory())
@@ -196,7 +189,8 @@ public class FileUtil {
         return result;
     }
 
-    /** ***************************************************************
+    /**
+     * **************************************************************
      * A test method.
      */
     public static void printHelp() {
@@ -207,19 +201,19 @@ public class FileUtil {
         System.out.println("  -s <fname> \"<pattern>\" - split statements");
     }
 
-    /** ***************************************************************
+    /**
+     * **************************************************************
      */
     public static void main(String[] args) {
 
         if (args == null) {
             printHelp();
-        }
-        else {
+        } else {
             if (args != null && args.length > 0 && args[0].equals("-h")) {
                 printHelp();
             }
             if (args != null && args.length > 2 && args[0].equals("-s")) {
-                splitStatements(args[1],args[2]);
+                splitStatements(args[1], args[2]);
             }
         }
     }

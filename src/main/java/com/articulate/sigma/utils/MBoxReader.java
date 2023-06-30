@@ -9,13 +9,12 @@ software which incorporates, builds on, or uses this code.
 Authors:
 Adam Pease apease@articulatesoftware.com
 */
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,14 +24,15 @@ import java.util.regex.Pattern;
 public class MBoxReader {
 
     //Enumeration of the property names we'll use:
-    public static String PROP_NAME_SENDER		= "Sender";
-    public static String PROP_NAME_DATE			= "MessageDate";
-    public static String PROP_NAME_SENDER_INFO	= "SenderInfo";
-    public static String PROP_NAME_BODY			= "Body";
-    public static String PROP_NAME_FACTS		= "Facts";
-    public static HashSet<HashMap<String,String>> records = new HashSet<>();
+    public static String PROP_NAME_SENDER = "Sender";
+    public static String PROP_NAME_DATE = "MessageDate";
+    public static String PROP_NAME_SENDER_INFO = "SenderInfo";
+    public static String PROP_NAME_BODY = "Body";
+    public static String PROP_NAME_FACTS = "Facts";
+    public static Set<Map<String, String>> records = new HashSet<>();
 
-    /** ***************************************************************
+    /**
+     * **************************************************************
      * This regular expression will be used to extract fields from the From
      * line of each message. It matches the word "From" followed by a
      * space, followed by a sequence of non-whitespace characters which
@@ -41,15 +41,33 @@ public class MBoxReader {
      * by a string of characters containing other information about the
      * sender.
      */
-    private static Pattern fromLineRegex
+    private static final Pattern fromLineRegex
             = Pattern.compile("From (\\S*)\\s*(.{24})(.*)");
 
-    /** ***************************************************************
+    /**
+     * **************************************************************
+     */
+    public static void main(String[] args) {
+
+        MBoxReader mbr = new MBoxReader();
+        if (args.length > 0) {
+            if (args[0].contains("-h")) {
+                System.out.println("Usage: java -classpath . com.articulate.sigma.util.MBoxReader -f file");
+            } else if (args[0].equals("-f") && args.length > 1) {
+                mbr.execute(args[1]);
+                mbr.extractInfo();
+                //System.out.println(records);
+            }
+        }
+    }
+
+    /**
+     * **************************************************************
      */
     public void execute(String path) {
 
         //Get the paths of the mbox files to process:
-        ArrayList<String> mboxFiles = new ArrayList<>();
+        List<String> mboxFiles = new ArrayList<>();
         File folder = new File(path);
         if (!folder.exists()) {
             System.out.println("Error in MBoxReader.execute(): '" + folder + "' doesn't exist ");
@@ -104,7 +122,7 @@ public class MBoxReader {
 
                     //Create a new Record for this message and add the from line
                     //fields as properties:
-                    HashMap<String,String> record = new HashMap();
+                    Map<String, String> record = new HashMap();
 
                     record.put(PROP_NAME_SENDER, sender);
                     record.put(PROP_NAME_DATE, date);
@@ -121,8 +139,7 @@ public class MBoxReader {
                     records.add(record); //Emit the completed record.
                 }
                 reader.close(); //close the current file.
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 //There was a problem processing the current file, but maybe the
                 //others will work; we'll log an error and continue:
                 System.out.println("Error processing mbox file '" + file + "': "
@@ -131,9 +148,10 @@ public class MBoxReader {
         }
     }
 
-    /** ***************************************************************
+    /**
+     * **************************************************************
      */
-    private void processHeaders(BufferedReader reader, HashMap<String,String> record) {
+    private void processHeaders(BufferedReader reader, Map<String, String> record) {
 
         try {
             //Loop until we reach a blank line, which indicates the end of the
@@ -153,16 +171,16 @@ public class MBoxReader {
                             + "the line '" + line + "'");
                     continue; //Move on to next header.
                 }
-                record.put(line.substring(0,colonPos),line.substring(colonPos + 1));
+                record.put(line.substring(0, colonPos), line.substring(colonPos + 1));
             }
-        }
-        catch (IOException ioe) {
+        } catch (IOException ioe) {
             System.out.println("Error in MBoxReader.processHeaders()");
             ioe.printStackTrace();
         }
     }
 
-    /** ***************************************************************
+    /**
+     * **************************************************************
      * Beginning at the current position of the reader, this method reads
      * in a message body until it reaches a blank line followed by a "From"
      * line indicating the start of the next message, or the stream runs out
@@ -170,15 +188,13 @@ public class MBoxReader {
      * to the specified record as a property, and returns the "From" line of
      * the next message, if any.
      *
-     * @param reader  Reader to read body from
-     * @param record  Record to add body to
-     *
-     * @return  The "From" line of the next message in the reader stream, or
-     *          <code>null</code> if there are no more messages
-     *
+     * @param reader Reader to read body from
+     * @param record Record to add body to
+     * @return The "From" line of the next message in the reader stream, or
+     * <code>null</code> if there are no more messages
      * @throws IOException
      */
-    private String processBody(BufferedReader reader, HashMap record) {
+    private String processBody(BufferedReader reader, Map record) {
 
         String body = "";
         String fromLine = null;
@@ -201,42 +217,25 @@ public class MBoxReader {
                 body += line; //Append line to body.
             }
             record.put(PROP_NAME_BODY, body); // Add the body to the record:
-        }
-        catch (IOException ioe) {
+        } catch (IOException ioe) {
             System.out.println("Error in MBoxReader.processBody()");
             ioe.printStackTrace();
         }
         return fromLine;
     }
 
-    /** ***************************************************************
+    /**
+     * **************************************************************
      */
     public void extractInfo() {
 
         System.out.println("In MBoxReader.extractInfo()");
-        for (HashMap<String,String> element : records) {
-            if (element.keySet().contains(PROP_NAME_BODY)) {
+        for (Map<String, String> element : records) {
+            if (element.containsKey(PROP_NAME_BODY)) {
                 String body = com.articulate.sigma.utils.StringUtil.removeHTML(element.get(PROP_NAME_BODY));
                 System.out.println("In MBoxReader.extractInfo() from " + body);
                 //List<String> results = InterpretNumerics.getSumoTerms(body);
                 //System.out.println("INFO in MBoxReader.extractInfo(): " + results);
-            }
-        }
-    }
-
-    /** ***************************************************************
-     */
-    public static void main(String[] args) {
-
-        MBoxReader mbr = new MBoxReader();
-        if (args.length > 0) {
-            if (args[0].contains("-h")) {
-                System.out.println("Usage: java -classpath . com.articulate.sigma.util.MBoxReader -f file");
-            }
-            else if (args[0].equals("-f") && args.length > 1) {
-                mbr.execute(args[1]);
-                mbr.extractInfo();
-                //System.out.println(records);
             }
         }
     }

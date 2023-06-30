@@ -1,21 +1,22 @@
-/** This code is copyright Articulate Software (c) 2003.  Some
-portions copyright Teknowledge (c) 2003 and reused under the terms of
-the GNU license.  This software is released under the GNU Public
-License <http://www.gnu.org/copyleft/gpl.html>.  Users of this code
-also consent, by use of this code, to credit Articulate Software and
-Teknowledge in any writings, briefings, publications, presentations,
-or other representations of any software which incorporates, builds
-on, or uses this code.  Please cite the following article in any
-publication with references:
-
-Pease, A., (2003). The Sigma Ontology Development Environment, in
-Working Notes of the IJCAI-2003 Workshop on Ontology and Distributed
-Systems, August 9, Acapulco, Mexico.
-See also https://github.com/ontologyportal
-
-Authors:
-Adam Pease apease@articulatesoftware.com
-*/
+/**
+ * This code is copyright Articulate Software (c) 2003.  Some
+ * portions copyright Teknowledge (c) 2003 and reused under the terms of
+ * the GNU license.  This software is released under the GNU Public
+ * License <http://www.gnu.org/copyleft/gpl.html>.  Users of this code
+ * also consent, by use of this code, to credit Articulate Software and
+ * Teknowledge in any writings, briefings, publications, presentations,
+ * or other representations of any software which incorporates, builds
+ * on, or uses this code.  Please cite the following article in any
+ * publication with references:
+ * <p>
+ * Pease, A., (2003). The Sigma Ontology Development Environment, in
+ * Working Notes of the IJCAI-2003 Workshop on Ontology and Distributed
+ * Systems, August 9, Acapulco, Mexico.
+ * See also https://github.com/ontologyportal
+ * <p>
+ * Authors:
+ * Adam Pease apease@articulatesoftware.com
+ */
 
 package com.articulate.sigma.utils;
 
@@ -25,8 +26,13 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.regex.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.SimpleTimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /** ***************************************************************
  * A utility class that defines static methods for common string
@@ -35,9 +41,43 @@ import java.util.regex.*;
 public class StringUtil {
 
     private static String CHARSET = "UTF-8";
+    /**************************************************************
+     * A String token that separates a qualified KIF term name
+     * from the namespace abbreviation prefix that qualifies it.
+     */
+    private static String KIF_NAMESPACE_DELIMITER = ":";
+    /**************************************************************
+     * A String token that separates a qualified term name from
+     * the W3C namespace abbreviation prefix that qualifies it.
+     */
+    private static String W3C_NAMESPACE_DELIMITER = ":";
+    /***************************************************************
+     * A "safe" alphanumeric ASCII string that can be substituted for
+     * the W3C or SUO-KIF string delimiting a namespace prefix from an
+     * unqualified term name.  The safe delimiter is used to produce
+     * input formulae or files that can be loaded by Vampire and other
+     * provers unable to handle term names containing non-alphanumeric
+     * characters.
+     */
+    private static String SAFE_NAMESPACE_DELIMITER = "0xx1";
+    /***************************************************************
+     * The base String used to create the names of local composite
+     * members.
+     */
+    private static String LOCAL_REF_BASE_NAME = "LocalRef";
 
     private StringUtil() {
         // This class should not have any instances.
+    }
+
+    /**************************************************************
+     * Returns a String denoting a character encoding scheme.  The
+     * default value is &quot;UTF-8&quot;.
+     *
+     * @return String
+     */
+    public static String getCharset() {
+        return CHARSET;
     }
 
     /** ************************************************************
@@ -49,16 +89,6 @@ public class StringUtil {
      */
     public static void setCharset(String charEncoding) {
         CHARSET = charEncoding;
-    }
-
-    /**************************************************************
-     * Returns a String denoting a character encoding scheme.  The
-     * default value is &quot;UTF-8&quot;.
-     *
-     * @return String
-     */
-    public static String getCharset() {
-        return CHARSET;
     }
 
     /**************************************************************
@@ -74,8 +104,7 @@ public class StringUtil {
         String encoded = input;
         try {
             encoded = URLEncoder.encode(input, getCharset());
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return encoded;
@@ -94,8 +123,7 @@ public class StringUtil {
         String decoded = input;
         try {
             decoded = URLDecoder.decode(input, getCharset());
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return decoded;
@@ -121,12 +149,6 @@ public class StringUtil {
         System.setProperty("line.separator", separator);
     }
 
-    /**************************************************************
-     * A String token that separates a qualified KIF term name
-     * from the namespace abbreviation prefix that qualifies it.
-     */
-    private static String KIF_NAMESPACE_DELIMITER = ":";
-
     /*************************************************************
      * Returns the string used in SUO-KIF to separate a namespace
      * prefix from the term it qualifies.
@@ -144,12 +166,6 @@ public class StringUtil {
         return KIF_NAMESPACE_DELIMITER;
     }
 
-    /**************************************************************
-     * A String token that separates a qualified term name from
-     * the W3C namespace abbreviation prefix that qualifies it.
-     */
-    private static String W3C_NAMESPACE_DELIMITER = ":";
-
     /***************************************************************
      * Returns the string preferred by W3C to separate a namespace
      * prefix from the term it qualifies.
@@ -166,16 +182,6 @@ public class StringUtil {
         W3C_NAMESPACE_DELIMITER = str;
         return W3C_NAMESPACE_DELIMITER;
     }
-
-    /***************************************************************
-     * A "safe" alphanumeric ASCII string that can be substituted for
-     * the W3C or SUO-KIF string delimiting a namespace prefix from an
-     * unqualified term name.  The safe delimiter is used to produce
-     * input formulae or files that can be loaded by Vampire and other
-     * provers unable to handle term names containing non-alphanumeric
-     * characters.
-     */
-    private static String SAFE_NAMESPACE_DELIMITER = "0xx1";
 
     /***************************************************************
      * Returns a "safe" alphanumeric ASCII string that can be
@@ -216,8 +222,7 @@ public class StringUtil {
         String ans = "";
         try {
             ans = (new String(com.articulate.sigma.utils.Base64.encodeBytes(input.getBytes(charset)).getBytes(), charset)).trim();
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return ans;
@@ -237,8 +242,7 @@ public class StringUtil {
         String ans = "";
         try {
             ans = (new String(com.articulate.sigma.utils.Base64.decode(input), charset)).trim();
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return ans;
@@ -263,8 +267,7 @@ public class StringUtil {
             md.update(encoded.getBytes(charset));
             byte[] raw = md.digest();
             encrypted = new String(raw, charset);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
@@ -310,7 +313,7 @@ public class StringUtil {
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < s.length; i++) {
             sb.append(s[i]);
-            if ((i+1) < s.length) {
+            if ((i + 1) < s.length) {
                 sb.append("_");
             }
         }
@@ -324,7 +327,7 @@ public class StringUtil {
      */
     public static String camelCaseToSep(String input) {
 
-        return camelCaseToSep(input,false,false);
+        return camelCaseToSep(input, false, false);
     }
 
     /****************************************************************
@@ -346,21 +349,19 @@ public class StringUtil {
         else
             sb.append(charar[0]);
         for (int i = 1; i < input.length(); i++) {
-            if (Character.isUpperCase(charar[i]) && Character.isLowerCase(charar[i-1])) {
+            if (Character.isUpperCase(charar[i]) && Character.isLowerCase(charar[i - 1])) {
                 if (lowercase)
                     sb.append(" " + Character.toLowerCase(charar[i]));
                 else
                     sb.append(" " + charar[i]);
-            }
-            else {
-                if (i < input.length()-1 && Character.isUpperCase(charar[i]) &&
-                        Character.isLowerCase(charar[i+1])) {
+            } else {
+                if (i < input.length() - 1 && Character.isUpperCase(charar[i]) &&
+                        Character.isLowerCase(charar[i + 1])) {
                     if (lowercase)
                         sb.append(" " + Character.toLowerCase(charar[i]));
                     else
                         sb.append(" " + charar[i]);
-                }
-                else
+                } else
                     sb.append(charar[i]);
             }
         }
@@ -526,7 +527,7 @@ public class StringUtil {
         while (m.find()) {
             //System.out.println("matches");
             String group = m.group(1);
-            sentence = m.replaceFirst(group).toString();
+            sentence = m.replaceFirst(group);
             m.reset(sentence);
         }
         m = Pattern.compile("(\\w)\\'m").matcher(sentence);
@@ -534,7 +535,7 @@ public class StringUtil {
         while (m.find()) {
             //System.out.println("matches");
             String group = m.group(1);
-            sentence = m.replaceFirst(group).toString();
+            sentence = m.replaceFirst(group);
             m.reset(sentence);
         }
         m = Pattern.compile("(\\w)n\\'t").matcher(sentence);
@@ -542,7 +543,7 @@ public class StringUtil {
         while (m.find()) {
             //System.out.println("matches");
             String group = m.group(1);
-            sentence = m.replaceFirst(group).toString();
+            sentence = m.replaceFirst(group);
             m.reset(sentence);
         }
         m = Pattern.compile("(\\w)\\'ll").matcher(sentence);
@@ -550,7 +551,7 @@ public class StringUtil {
         while (m.find()) {
             //System.out.println("matches");
             String group = m.group(1);
-            sentence = m.replaceFirst(group).toString();
+            sentence = m.replaceFirst(group);
             m.reset(sentence);
         }
         m = Pattern.compile("(\\w)\\'s").matcher(sentence);
@@ -558,7 +559,7 @@ public class StringUtil {
         while (m.find()) {
             //System.out.println("matches");
             String group = m.group(1);
-            sentence = m.replaceFirst(group).toString();
+            sentence = m.replaceFirst(group);
             m.reset(sentence);
         }
         m = Pattern.compile("(\\w)\\'d").matcher(sentence);
@@ -566,7 +567,7 @@ public class StringUtil {
         while (m.find()) {
             //System.out.println("matches");
             String group = m.group(1);
-            sentence = m.replaceFirst(group).toString();
+            sentence = m.replaceFirst(group);
             m.reset(sentence);
         }
         m = Pattern.compile("(\\w)\\'ve").matcher(sentence);
@@ -574,7 +575,7 @@ public class StringUtil {
         while (m.find()) {
             //System.out.println("matches");
             String group = m.group(1);
-            sentence = m.replaceFirst(group).toString();
+            sentence = m.replaceFirst(group);
             m.reset(sentence);
         }
         sentence = sentence.replaceAll("\\'", "");
@@ -625,7 +626,7 @@ public class StringUtil {
      * isJavaIdentifierPart() isn't sufficient, since it allows
      * characters KIF doesn't
      */
-    public static String arrayListToSpacedString(ArrayList<String> al) {
+    public static String ListToSpacedString(List<String> al) {
 
         if (al == null || al.size() < 1)
             return "";
@@ -639,9 +640,9 @@ public class StringUtil {
     }
 
     /***************************************************************
-     * Convert an ArrayList, to a set of lines
+     * Convert an List, to a set of lines
      */
-    public static String arrayListToCRLFString(ArrayList<String> al) {
+    public static String ListToCRLFString(List<String> al) {
 
         if (al == null || al.size() < 1)
             return "";
@@ -805,7 +806,7 @@ public class StringUtil {
      */
     public static String removeEscapes(String str) {
 
-        String ans = str.replaceAll("\\\\u[0-9A-F]{4}"," ");
+        String ans = str.replaceAll("\\\\u[0-9A-F]{4}", " ");
         if (isNonEmptyString(str)) {
             StringBuilder sb = new StringBuilder();
             char prevCh = 'x';
@@ -815,8 +816,7 @@ public class StringUtil {
                 ch = str.charAt(i);
                 if (Character.isAlphabetic(ch) && (prevCh == '\\') && sb.length() > 0) {
                     sb.deleteCharAt(sb.length() - 1);
-                }
-                else {
+                } else {
                     sb.append(ch);
                     prevCh = ch;
                 }
@@ -873,8 +873,7 @@ public class StringUtil {
                     int prevI = (i - 2);
                     if (prevI > -1) {
                         prevCh = str.charAt(prevI);
-                    }
-                    else {
+                    } else {
                         prevCh = 'x';
                     }
                     continue;
@@ -943,7 +942,7 @@ public class StringUtil {
 
         if (emptyString(s))
             return s;
-        return s.replaceAll(" [ ]+"," ");
+        return s.replaceAll(" [ ]+", " ");
     }
 
     /****************************************************************
@@ -1010,7 +1009,7 @@ public class StringUtil {
      */
     public static String replaceNonAsciiChars(String str) {
 
-        return replaceNonAsciiChars(str,'x');
+        return replaceNonAsciiChars(str, 'x');
     }
 
     /***************************************************************
@@ -1045,8 +1044,7 @@ public class StringUtil {
                 sdf.setTimeZone(new SimpleTimeZone(0, "Greenwich"));
                 dateTime = sdf.format(new Date());
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return dateTime;
@@ -1085,8 +1083,7 @@ public class StringUtil {
                 }
                 output = sb.toString();
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return output;
@@ -1105,8 +1102,7 @@ public class StringUtil {
             ans = (isNonEmptyString(input)
                     && (input.matches("^.?http://.+")
                     || input.matches("^.?file://.+")));
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return ans;
@@ -1136,8 +1132,7 @@ public class StringUtil {
         try {
             Integer.parseInt(s.trim()); // s is a valid integer
             isValidInteger = true;
-        }
-        catch (NumberFormatException ex) {
+        } catch (NumberFormatException ex) {
             // s is not an integer
         }
         return isValidInteger;
@@ -1162,8 +1157,7 @@ public class StringUtil {
                             || ((fc == '\'') && (lc == '\'')) || (fc == '`'));
                 }
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return ans;
@@ -1182,10 +1176,9 @@ public class StringUtil {
             if (isNonEmptyString(input)
                     && !isQuotedString(input)
                     && (input.charAt(0) != quoteChar)) {
-                ans = String.valueOf(quoteChar) + input + quoteChar;
+                ans = quoteChar + input + quoteChar;
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return ans;
@@ -1207,10 +1200,7 @@ public class StringUtil {
      */
     public static boolean isPunct(String s) {
 
-        if (Pattern.matches("\\p{Punct}", s))
-            return true;
-        else
-            return false;
+        return Pattern.matches("\\p{Punct}", s);
     }
 
     /****************************************************************
@@ -1220,14 +1210,10 @@ public class StringUtil {
         PatternSyntaxException exc = null;
         try {
             Pattern.compile(s);
-        }
-        catch (PatternSyntaxException e) {
+        } catch (PatternSyntaxException e) {
             exc = e;
         }
-        if (exc != null)
-            return false;
-        else
-            return true;
+        return exc == null;
     }
 
     /****************************************************
@@ -1236,11 +1222,9 @@ public class StringUtil {
 
         if (StringUtil.emptyString(term))
             return false;
-        if (term.contains("(") || term.contains("[") || term.contains("{") || term.contains("\\") || term.contains("^")
+        return term.contains("(") || term.contains("[") || term.contains("{") || term.contains("\\") || term.contains("^")
                 || term.contains("$") || term.contains("|") || term.contains("}") || term.contains("]")
-                || term.contains(")") || term.contains("?") || term.contains("*") || term.contains("+"))
-            return true;
-        return false;
+                || term.contains(")") || term.contains("?") || term.contains("*") || term.contains("+");
     }
 
     /****************************************************************
@@ -1251,22 +1235,19 @@ public class StringUtil {
         try {
             Integer.parseInt(input);
             return true;
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             // s is not numeric
         }
         try {
             Double.parseDouble(input);
             return true;
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             // s is not numeric
         }
         try {
             Float.parseFloat(input);
             return true;
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             // s is not numeric
             return false;
         }
@@ -1287,12 +1268,12 @@ public class StringUtil {
             for (int i = 0; i < n; i++)
                 sb.append(input);
             ans = sb.toString();
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return ans;
     }
+
     /****************************************************************
      * Replaces non-alphanumeric namespace delimiters in input with an
      * alphanumeric form that can be handled by Vampire and other
@@ -1315,8 +1296,7 @@ public class StringUtil {
                     output = output.replaceAll("(\\w)" + delim + "(\\w)", safe);
                 }
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return output;
@@ -1342,8 +1322,7 @@ public class StringUtil {
                 String kifdelim = getKifNamespaceDelimiter();
                 output = output.replace(safedelim, kifdelim);
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return output;
@@ -1366,8 +1345,7 @@ public class StringUtil {
                     ans = ans.replaceFirst(w3c, safe);
                 }
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return ans;
@@ -1387,8 +1365,7 @@ public class StringUtil {
         try {
             if (StringUtil.emptyString(kbHref))
                 ans = toSafeNamespaceDelimiter(term);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return ans;
@@ -1423,11 +1400,9 @@ public class StringUtil {
     public static boolean quoted(String input) {
 
         String trimmed = input.trim();
-        if (trimmed.charAt(0) == '\'' && trimmed.charAt(trimmed.length()-1) == '\'')
+        if (trimmed.charAt(0) == '\'' && trimmed.charAt(trimmed.length() - 1) == '\'')
             return true;
-        if (trimmed.charAt(0) == '\"' && trimmed.charAt(trimmed.length()-1) == '\"')
-            return true;
-        return false;
+        return trimmed.charAt(0) == '\"' && trimmed.charAt(trimmed.length() - 1) == '\"';
     }
 
     /****************************************************************
@@ -1462,12 +1437,6 @@ public class StringUtil {
         }
         return ans;
     }
-
-    /***************************************************************
-     * The base String used to create the names of local composite
-     * members.
-     */
-    private static String LOCAL_REF_BASE_NAME = "LocalRef";
 
     /***************************************************************
      */
@@ -1509,8 +1478,7 @@ public class StringUtil {
                 fc++;
                 result = new File(base + "-" + fc + suff);
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return result;
@@ -1538,8 +1506,7 @@ public class StringUtil {
                         sb.insert(j, ls);
                         i = (j + lslen);
                         j = (i + length);
-                    }
-                    else {
+                    } else {
                         j += length;
                         while ((j < sb.length()) && !Character.isWhitespace(sb.charAt(j)))
                             j++;
@@ -1553,8 +1520,7 @@ public class StringUtil {
                 }
                 result = sb.toString();
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return result;
@@ -1575,11 +1541,11 @@ public class StringUtil {
         String ID = String.valueOf(intval);
         if (ID.length() > 8) {
             System.out.println("Error in StringUtil.integerToPaddedString(): max number exceeded: " +
-                ID);
+                    ID);
             return null;
         }
         if (ID.length() < 8)
-            return StringUtil.fillString(ID,'0',8,true);
+            return StringUtil.fillString(ID, '0', 8, true);
         else
             return ID;
     }
@@ -1594,11 +1560,10 @@ public class StringUtil {
             i = i + 1;
             String ID = String.valueOf(i);
             if (ID.length() < 8)
-                return StringUtil.fillString(ID,'0',8,true);
+                return StringUtil.fillString(ID, '0', 8, true);
             else
                 return ID;
-        }
-        catch (Exception pe) {
+        } catch (Exception pe) {
             System.out.println("Error in StringUtil.incStrInteger(): bad input: " + intval);
             return intval;
         }
@@ -1618,11 +1583,10 @@ public class StringUtil {
                 result.append(Character.toUpperCase(input.charAt(0)));
             else
                 result.append(Character.toLowerCase(input.charAt(0)));
+        else if (upcaseFirst)
+            result.append("I_");
         else
-            if (upcaseFirst)
-                result.append("I_");
-            else
-                result.append("r_");
+            result.append("r_");
         for (int i = 1; i < input.length(); i++) {
             if (input.charAt(i) != ' ') {
                 if (Character.isJavaIdentifierPart(input.charAt(i)) && input.charAt(i) != '$')
@@ -1638,20 +1602,20 @@ public class StringUtil {
     /** *****************************************************************
      */
     public static String indent(int num, String indentChars) {
-        
+
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < num; i++)
             sb.append(indentChars);
         return sb.toString();
     }
-    
+
 
     /** *****************************************************************
      * Find the parenthesis that balances the one in st at character pIndex
      * @return -1 if not found
      */
     public static int findBalancedParen(int pIndex, String st) {
-        
+
         int parenLevel = 1;
         for (int i = pIndex + 1; i < st.length(); i++) {
             if (st.charAt(i) == '(')
@@ -1664,18 +1628,18 @@ public class StringUtil {
         }
         return -1;
     }
-    
+
     /** *****************************************************************
      * Fill a string with the desired character up to the totalLength.
      * If string is null return a completely filled string.
      */
     public static String fillString(String st, char fillchar, int totalLength, boolean prepend) {
-        
+
         StringBuffer result = null;
         if (st != null)
             result = new StringBuffer(st);
         else
-            result = new StringBuffer("");
+            result = new StringBuffer();
         for (int i = 0; i < totalLength - st.length(); i++) {
             if (prepend)
                 result.insert(0, fillchar);
@@ -1694,8 +1658,7 @@ public class StringUtil {
             URL url = new URL("ftp://ftp1.freebsd.org/pub/FreeBSD/");
             InputStream input = url.openStream();
             return true;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             System.out.println("error in StringUtil.urlExists()");
         }
         return false;
@@ -1707,7 +1670,7 @@ public class StringUtil {
      *
      * @param aFile is a file which already exists and can be read.
      */
-     public static String getContents(File aFile) {
+    public static String getContents(File aFile) {
 
         //...checks on aFile are elided
         StringBuilder contents = new StringBuilder();
@@ -1715,25 +1678,23 @@ public class StringUtil {
         try {
             //use buffering, reading one line at a time
             //FileReader always assumes default encoding is OK!
-            BufferedReader input =  new BufferedReader(new FileReader(aFile));
+            BufferedReader input = new BufferedReader(new FileReader(aFile));
             try {
                 String line = null; //not declared within while loop
-        /*
-        * readLine is a bit quirky :
-        * it returns the content of a line MINUS the newline.
-        * it returns null only for the END of the stream.
-        * it returns an empty String if two newlines appear in a row.
-        */
-                while (( line = input.readLine()) != null){
+                /*
+                 * readLine is a bit quirky :
+                 * it returns the content of a line MINUS the newline.
+                 * it returns null only for the END of the stream.
+                 * it returns an empty String if two newlines appear in a row.
+                 */
+                while ((line = input.readLine()) != null) {
                     contents.append(line);
                     contents.append(System.getProperty("line.separator"));
                 }
-            }
-            finally {
+            } finally {
                 input.close();
             }
-        }
-        catch (IOException ex){
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
 
@@ -1745,7 +1706,7 @@ public class StringUtil {
      * @param input
      * @return
      */
-    public static String filterHtml(String input)  {
+    public static String filterHtml(String input) {
 
         // Note use of non-greedy matching.
         String out = input.replaceAll("<.*?>", "");
@@ -1767,12 +1728,12 @@ public class StringUtil {
             return s;
         if (s.length() < max)
             return s;
-        return s.substring(0,max);
+        return s.substring(0, max);
     }
 
     /** *****************************************************************
      */
-    public static void main(String args[]) {
+    public static void main(String[] args) {
 
         //System.out.println(StringUtil.fillString("111",'0',8,true));
         System.out.println(StringUtil.camelCaseToSep("ArtesiaMunicipalNMAirport"));
