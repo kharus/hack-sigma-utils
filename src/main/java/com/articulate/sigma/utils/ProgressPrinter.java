@@ -23,8 +23,8 @@ MA  02111-1307 USA
 
 public class ProgressPrinter {
 
-    int progress = 0;
     final int ticksToSkip;
+    int progress = 0;
 
     public ProgressPrinter(int ticksToSkip) {
 

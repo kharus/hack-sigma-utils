@@ -1,4 +1,3 @@
-
 /* This code is copyrighted by Articulate Software (c) 2003.
 It is released under the GNU Public License <http://www.gnu.org/copyleft/gpl.html>.
 Users of this code also consent, by use of this code, to credit Articulate Software in any
@@ -40,8 +39,8 @@ public class AVPair implements Comparable, Serializable {
 
         if (!avp.getClass().getName().equalsIgnoreCase("com.articulate.sigma.utils.AVPair"))
             throw new ClassCastException("Error in AVPair.compareTo(): "
-                                         + "Class cast exception for argument of class: "
-                                         + avp.getClass().getName());
+                    + "Class cast exception for argument of class: "
+                    + avp.getClass().getName());
         //System.out.println("Info in AVPair.compareTo(): comparing: " + attribute +
         //        "to: " + ((AVPair) avp).attribute);
         return attribute.compareTo(((AVPair) avp).attribute);
