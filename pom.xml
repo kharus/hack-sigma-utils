@@ -6,9 +6,9 @@
 
     <groupId>com.kharu5</groupId>
     <artifactId>hack-sigma-utils</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <scm>
-        <developerConnection>scm:git:https://github.com/kharus/sigma-hack.git</developerConnection>
+        <developerConnection>https://github.com/kharus/hack-sigma-utils.git</developerConnection>
     </scm>
     <distributionManagement>
         <repository>
