@@ -4,10 +4,10 @@
 
     <groupId>com.kharu5</groupId>
     <artifactId>hack-sigma-utils</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <scm>
         <developerConnection>scm:git:https://github.com/kharus/hack-sigma-utils.git</developerConnection>
-      <tag>hack-sigma-utils-1.0.0</tag>
+      <tag>HEAD</tag>
   </scm>
     <distributionManagement>
         <repository>
